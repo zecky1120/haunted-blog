@@ -4,6 +4,7 @@ class BlogsController < ApplicationController
   skip_before_action :authenticate_user!, only: %i[index show]
 
   before_action :set_blog, only: %i[show edit update destroy]
+  before_action :correct_user, only: %i[edit update destroy]
 
   def index
     @blogs = Blog.search(params[:term]).published.default_order
@@ -49,5 +50,11 @@ class BlogsController < ApplicationController
 
   def blog_params
     params.expect(blog: %i[title content secret random_eyecatch])
+  end
+
+  def correct_user
+    unless @blog.user_id == current_user.id
+      raise ActionController::RoutingError.new('Not Found')
+    end
   end
 end

@@ -5,6 +5,7 @@ class BlogsController < ApplicationController
 
   before_action :set_blog, only: %i[show edit update destroy]
   before_action :correct_user, only: %i[edit update destroy]
+  before_action :private_blog, only: %i[show]
 
   def index
     @blogs = Blog.search(params[:term]).published.default_order
@@ -54,6 +55,12 @@ class BlogsController < ApplicationController
 
   def correct_user
     unless @blog.user_id == current_user.id
+      raise ActionController::RoutingError.new('Not Found')
+    end
+  end
+
+  def private_blog
+    if @blog.secret? && @blog.user != current_user
       raise ActionController::RoutingError.new('Not Found')
     end
   end

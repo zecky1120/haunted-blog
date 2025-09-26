@@ -6,7 +6,6 @@ class BlogsController < ApplicationController
   before_action :set_blog, only: %i[show edit update destroy]
   before_action :correct_user, only: %i[edit update destroy]
   before_action :private_blog, only: %i[show]
-  # before_action :is_premium?, only: %i[update new]
 
   def index
     @blogs = Blog.search(params[:term]).published.default_order
@@ -51,7 +50,11 @@ class BlogsController < ApplicationController
   end
 
   def blog_params
-    params.expect(blog: %i[title content secret random_eyecatch])
+    permitted_params = %i[title content secret]
+    if current_user.premium?
+      permitted_params << [:random_eyecatch]
+    end
+    params.expect(blog: permitted_params)
   end
 
   def correct_user
@@ -63,12 +66,6 @@ class BlogsController < ApplicationController
   def private_blog
     if @blog.secret? && @blog.user != current_user
       redirect_to blogs_url, status: :not_found
-    end
-  end
-
-  def is_premium?
-    unless current_user.premium?
-      redirect_to blogs_url
     end
   end
 end

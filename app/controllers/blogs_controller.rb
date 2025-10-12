@@ -4,14 +4,14 @@ class BlogsController < ApplicationController
   skip_before_action :authenticate_user!, only: %i[index show]
 
   before_action :set_blog, only: %i[show edit update destroy]
-  before_action :correct_user, only: %i[edit update destroy]
-  before_action :private_blog, only: %i[show]
 
   def index
     @blogs = Blog.search(params[:term]).published.default_order
   end
 
-  def show; end
+  def show
+    raise ActiveRecord::RecordNotFound if @blog.secret? && @blog.user != current_user
+  end
 
   def new
     @blog = Blog.new
@@ -53,17 +53,5 @@ class BlogsController < ApplicationController
     permitted_keys = %i[title content secret]
     permitted_keys << :random_eyecatch if current_user.premium?
     params.expect(blog: permitted_keys)
-  end
-
-  def correct_user
-    unless @blog.user_id == current_user.id
-      redirect_to blogs_url, status: :not_found
-    end
-  end
-
-  def private_blog
-    if @blog.secret? && @blog.user != current_user
-      redirect_to blogs_url, status: :not_found
-    end
   end
 end

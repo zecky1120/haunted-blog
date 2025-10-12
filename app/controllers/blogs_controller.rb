@@ -46,7 +46,12 @@ class BlogsController < ApplicationController
   private
 
   def set_blog
-    @blog = Blog.find(params[:id])
+    @blog =
+      if params[:action] == 'show'
+        Blog.find(params[:id])
+      else
+        current_user.blogs.find(params[:id])
+      end
   end
 
   def blog_params

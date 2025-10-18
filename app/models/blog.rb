@@ -13,6 +13,8 @@ class Blog < ApplicationRecord
     where('title LIKE ? OR content LIKE ?', "%#{term}%", "%#{term}%")
   }
 
+  scope :visible_to, ->(target_user) { where(secret: false).or(where(user: target_user)) }
+
   scope :default_order, -> { order(id: :desc) }
 
   def owned_by?(target_user)
